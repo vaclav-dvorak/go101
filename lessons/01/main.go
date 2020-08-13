@@ -2,37 +2,23 @@ package main
 
 import "math/rand"
 
-const MaxRnd = 16
+const maxRnd = 20
 
-// A function declaration
-/*
- StatRandomNumbers produces a certain number of
- non-negative random integers which are less than
- MaxRnd, then counts and returns the numbers of
- small and large ones among the produced randoms.
- n specifies how many randoms to be produced.
-*/
-func StatRandomNumbers(n int) (int, int) {
-	// Declare two variables (both as 0).
+func rndNum(n int) (int, int) {
 	var a, b int
-	// A for-loop control flow.
 	for i := 0; i < n; i++ {
-		// An if-else control flow.
-		if rand.Intn(MaxRnd) < MaxRnd/2 {
-			a = a + 1
+		if rand.Intn(maxRnd) < maxRnd/2 {
+			a++
 		} else {
-			b++ // same as: b = b + 1
+			b++
 		}
 	}
-	return a, b // this function return two results
+	return a, b
 }
 
-// "main" function is the entry function of a program.
 func main() {
-	var num = 100
-	// Call the declared StatRandomNumbers function.
-	x, y := StatRandomNumbers(num)
-	// Call two built-in functions (print and println).
-	print("Result: ", x, " + ", y, " = ", num, "? ")
-	println(x+y == num)
+	var n = 100
+	x, y := rndNum(n)
+	print("Result: ", x, " + ", y, " = ", n, "?")
+	println(x+y == n)
 }
