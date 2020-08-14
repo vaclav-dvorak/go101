@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
+	"time"
 )
 
 const (
@@ -10,6 +13,25 @@ const (
 	mutation    = 0.1
 	generations = 500
 )
+
+type city struct {
+	name  string
+	x, y  int
+	dists map[string]float64
+}
+
+func (c *city) distance(t city) float64 {
+	if c.dists == nil {
+		c.dists = make(map[string]float64)
+	}
+	if c.dists[t.name] != 0 {
+		return c.dists[t.name]
+	}
+	xDis := (c.x - t.x)
+	yDis := (c.y - t.y)
+	c.dists[t.name] = math.Sqrt(float64((xDis * xDis) + (yDis * yDis)))
+	return c.dists[t.name]
+}
 
 const cities = 10
 
@@ -31,6 +53,7 @@ func nextGeneration(p int, elitism int, mutation float32) (r int) {
 
 //? https://towardsdatascience.com/evolution-of-a-salesman-a-complete-genetic-algorithm-tutorial-for-python-6fe5d2b3ca35
 func main() {
+	rand.Seed(time.Now().UnixNano())
 	pop := initialPopulation(popSize, cities)
 	fmt.Println("Initial best distance: ", 10)
 	for i := 0; i < generations; i++ {
