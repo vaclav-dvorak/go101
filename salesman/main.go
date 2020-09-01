@@ -12,7 +12,7 @@ const (
 	citiesNum   = 10
 	elitism     = 20
 	mutation    = 0.1
-	generations = 500
+	generations = 1
 )
 
 var cities = make([]cityT, citiesNum)
@@ -24,15 +24,14 @@ func rankRoutes(population []routeT) []routeT {
 	return population
 }
 
-func nextGeneration(p int, elitism int, mutation float32) (r int) {
-	// popRanked = rankRoutes(currentGen)
+func nextGeneration(currentGen []routeT, elitism int, mutation float32) []routeT {
+	popRanked := rankRoutes(currentGen)
 	// selectionResults = selection(popRanked, eliteSize) // select mating candidates from current population
 	// matingpool = matingPool(currentGen, selectionResults) // put candidates into mating pool
 	// children = breedPopulation(matingpool, eliteSize) // breed new childrens and join them with elites
 	// nextGeneration = mutatePopulation(children, mutationRate) // mutate childrens
 	// return nextGeneration
-	r = 5
-	return
+	return popRanked
 }
 
 //? https://towardsdatascience.com/evolution-of-a-salesman-a-complete-genetic-algorithm-tutorial-for-python-6fe5d2b3ca35
@@ -42,10 +41,10 @@ func main() {
 	// fmt.Println(cities)
 	population := initialPopulation()
 	// fmt.Println(population)
-	population = rankRoutes(population)
+
 	fmt.Println("Initial best distance: ", population[0].routeDistance())
-	// for i := 0; i < generations; i++ {
-	// pop = nextGeneration(pop, elitism, mutation)
-	// }
-	fmt.Println("Final distance: ", 5)
+	for i := 0; i < generations; i++ {
+		population = nextGeneration(population, elitism, mutation)
+	}
+	fmt.Println("Final distance: ", population[0].routeDistance())
 }
