@@ -18,7 +18,7 @@ func sayGreetings(greeting string, times int) {
 	wg.Done() // Notify a task is finished.
 }
 
-func main() {
+func rnd() {
 	rand.Seed(time.Now().UnixNano())
 	log.SetFlags(0)
 	wg.Add(2) // register two tasks.

@@ -4,40 +4,79 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"sort"
 	"time"
 )
 
 const (
-	popSize     = 100
+	popSize     = 5
 	elitism     = 20
 	mutation    = 0.1
 	generations = 500
 )
 
-type city struct {
-	name  string
-	x, y  int
-	dists map[string]float64
+type cityT struct {
+	name string
+	x, y int
 }
 
-func (c *city) distance(t city) float64 {
-	if c.dists == nil {
-		c.dists = make(map[string]float64)
-	}
-	if c.dists[t.name] != 0 {
-		return c.dists[t.name]
-	}
+func (c *cityT) distance(t cityT) float64 {
 	xDis := (c.x - t.x)
 	yDis := (c.y - t.y)
-	c.dists[t.name] = math.Sqrt(float64((xDis * xDis) + (yDis * yDis)))
-	return c.dists[t.name]
+	return math.Sqrt(float64((xDis * xDis) + (yDis * yDis)))
 }
 
-const cities = 10
+type routeT struct {
+	route    []cityT
+	distance float64
+}
 
-func initialPopulation(n int, c int) (r int) {
-	r = 10
-	return
+func (f *routeT) routeDistance() float64 {
+	if f.distance == 0 {
+		dist := 0.0
+		for k, city := range f.route {
+			from := city
+			to := cityT{}
+			if k+1 < len(f.route) {
+				to = f.route[k+1]
+			} else {
+				to = f.route[0]
+			}
+			dist += from.distance(to)
+		}
+		f.distance = dist
+	}
+	return f.distance
+}
+
+func initCities() {
+	for i := range cities {
+		cities[i] = cityT{fmt.Sprintf("city%d", i), rand.Intn(100), rand.Intn(100)}
+	}
+}
+
+const citiesNum = 10
+
+var cities = make([]cityT, citiesNum)
+
+func initialPopulation() []routeT {
+	population := make([]routeT, popSize)
+	for popi := 0; popi < popSize; popi++ {
+		idx := rand.Perm(citiesNum)
+		sample := make([]cityT, citiesNum)
+		for i := range idx {
+			sample[i] = cities[idx[i]]
+		}
+		population[popi] = routeT{route: sample}
+	}
+	return population
+}
+
+func rankRoutes(population []routeT) []routeT {
+	sort.SliceStable(population, func(i, j int) bool {
+		return population[i].routeDistance() < population[j].routeDistance()
+	})
+	return population
 }
 
 func nextGeneration(p int, elitism int, mutation float32) (r int) {
@@ -54,10 +93,14 @@ func nextGeneration(p int, elitism int, mutation float32) (r int) {
 //? https://towardsdatascience.com/evolution-of-a-salesman-a-complete-genetic-algorithm-tutorial-for-python-6fe5d2b3ca35
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	pop := initialPopulation(popSize, cities)
-	fmt.Println("Initial best distance: ", 10)
-	for i := 0; i < generations; i++ {
-		pop = nextGeneration(pop, elitism, mutation)
-	}
+	initCities()
+	// fmt.Println(cities)
+	population := initialPopulation()
+	// fmt.Println(population)
+	population = rankRoutes(population)
+	fmt.Println("Initial best distance: ", population[0].routeDistance())
+	// for i := 0; i < generations; i++ {
+		// pop = nextGeneration(pop, elitism, mutation)
+	// }
 	fmt.Println("Final distance: ", 5)
 }
