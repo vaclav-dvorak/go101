@@ -10,10 +10,13 @@ import (
 
 const (
 	popSize     = 5
+	citiesNum   = 10
 	elitism     = 20
 	mutation    = 0.1
 	generations = 500
 )
+
+var cities = make([]cityT, citiesNum)
 
 type cityT struct {
 	name string
@@ -55,13 +58,9 @@ func initCities() {
 	}
 }
 
-const citiesNum = 10
-
-var cities = make([]cityT, citiesNum)
-
 func initialPopulation() []routeT {
 	population := make([]routeT, popSize)
-	for popi := 0; popi < popSize; popi++ {
+	for popi := range population {
 		idx := rand.Perm(citiesNum)
 		sample := make([]cityT, citiesNum)
 		for i := range idx {
@@ -100,7 +99,7 @@ func main() {
 	population = rankRoutes(population)
 	fmt.Println("Initial best distance: ", population[0].routeDistance())
 	// for i := 0; i < generations; i++ {
-		// pop = nextGeneration(pop, elitism, mutation)
+	// pop = nextGeneration(pop, elitism, mutation)
 	// }
 	fmt.Println("Final distance: ", 5)
 }
