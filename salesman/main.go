@@ -11,7 +11,8 @@ import (
 const (
 	popSize     = 100
 	citiesNum   = 10
-	elitism     = 20
+	mapSize     = 20
+	elitism     = 10
 	trnmtSize   = 4 // popsize - elitism must be bigger than this
 	mutation    = 0.01
 	generations = 500
@@ -78,10 +79,10 @@ func routeContains(s []cityT, x cityT) bool {
 
 func breed(parent1 routeT, parent2 routeT) routeT {
 	var child routeT
-	geneA := float64(rand.Intn(len(parent1.route)))
-	geneB := float64(rand.Intn(len(parent1.route)))
-	startGene := int(math.Min(geneA, geneB))
-	endGene := int(math.Max(geneA, geneB))
+	geneA := float64(rand.Intn(len(parent1.route) - 2))
+	geneB := float64(rand.Intn(len(parent1.route) - 2))
+	startGene := int(math.Min(geneA, geneB) + 1)
+	endGene := int(math.Max(geneA, geneB) + 1)
 	sequence := parent1.route[startGene:(endGene + 1)]
 	for k, city := range parent2.route {
 		if k == startGene {
@@ -125,9 +126,12 @@ func nextGeneration(currentGen []routeT, elitism int, mutation float32) []routeT
 
 //? https://towardsdatascience.com/evolution-of-a-salesman-a-complete-genetic-algorithm-tutorial-for-python-6fe5d2b3ca35
 func main() {
+	if citiesNum > 62 {
+		fmt.Println("Number of cities cannot be bigger then 62")
+		return
+	}
 	rand.Seed(time.Now().UnixNano())
 	initCities()
-	// fmt.Println(cities)
 	population := rankRoutes(initialPopulation())
 	// fmt.Println(population)
 
@@ -135,6 +139,8 @@ func main() {
 	for i := 0; i < generations; i++ {
 		population = nextGeneration(population, elitism, mutation)
 	}
-	fmt.Println("Final distance: ", population[0].routeDistance())
-	fmt.Println("Best route: ", population[0].route)
+	for i:= 0; i < 10; i++ {
+		fmt.Println("Final distance: ", population[i].routeDistance())
+		fmt.Println("Best route: ", population[i].route)
+	}
 }
