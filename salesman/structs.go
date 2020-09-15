@@ -37,3 +37,11 @@ func (f *routeT) routeDistance() float64 {
 	}
 	return f.distance
 }
+
+func (f *routeT) toString() string {
+	r := ""
+	for _, city := range f.route {
+		r += city.name
+	}
+	return r
+}

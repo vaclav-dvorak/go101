@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"os"
 	"sort"
 	"time"
 )
@@ -93,6 +94,18 @@ func breed(parent1 routeT, parent2 routeT) routeT {
 		}
 		child.route = append(child.route, city)
 	}
+	clon := false
+	if child.toString() == parent1.toString() {
+		fmt.Println("Child is clon of P1: ", child.toString(), " ", parent1.toString())
+		clon = true
+	}
+	if child.toString() == parent2.toString() {
+		fmt.Println("Child is clon of P2: ", child.toString(), " ", parent2.toString())
+		clon = true
+	}
+	if clon {
+		os.Exit(1)
+	}
 	return child
 }
 
@@ -139,8 +152,8 @@ func main() {
 	for i := 0; i < generations; i++ {
 		population = nextGeneration(population, elitism, mutation)
 	}
-	for i:= 0; i < 10; i++ {
+	for i := 0; i < 10; i++ {
 		fmt.Println("Final distance: ", population[i].routeDistance())
-		fmt.Println("Best route: ", population[i].route)
+		fmt.Println("Best route: ", population[i].toString())
 	}
 }
