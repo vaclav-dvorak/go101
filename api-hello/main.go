@@ -6,25 +6,50 @@ import (
     "net/http"
     "encoding/json"
     "github.com/gorilla/mux"
+    "github.com/rs/cors"
+    _ "github.com/vaclav-dvorak/go101/api-hello/docs" // This line is necessary for go-swagger to find your docs!
 )
 
 type Response struct {
-	Message string `json:"message"`
+    Message string `json:"message"`
 }
 
-func returnHelloName(w http.ResponseWriter, r *http.Request){
-	vars := mux.Vars(r)
-	name := vars["name"]
+func hello(w http.ResponseWriter, r *http.Request){
+    // swagger:operation GET /hello/{name} hello Hello
+    //
+    // Returns a simple Hello message
+    // ---
+    // consumes:
+    // - text/plain
+    // produces:
+    // - application/json
+    // parameters:
+    // - name: name
+    //   in: path
+    //   description: Name to be returned.
+    //   required: true
+    //   type: string
+    // responses:
+    //   '200':
+    //     description: The hello message
+    //     type: string
 
-	fmt.Println("Endpoint Hit: returnHelloName")
-	json.NewEncoder(w).Encode(Response{Message: "Hello " + name})
+    vars := mux.Vars(r)
+    name := vars["name"]
+
+    fmt.Println("Endpoint Hit: hello")
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(Response{Message: "Hello " + name})
 }
 
 func handleRequests() {
     // creates a new instance of a mux router
-    myRouter := mux.NewRouter().StrictSlash(true)
-		myRouter.HandleFunc("/hello/{name}", returnHelloName)
-    log.Fatal(http.ListenAndServe(":3000", myRouter))
+    router := mux.NewRouter().StrictSlash(true)
+    router.HandleFunc("/hello/{name}", hello).Methods("GET")
+
+    handler := cors.Default().Handler(router)
+
+    log.Fatal(http.ListenAndServe(":8080", handler))
 }
 
 func main() {
