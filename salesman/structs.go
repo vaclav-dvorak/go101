@@ -21,20 +21,21 @@ type routeT struct {
 }
 
 func (f *routeT) routeDistance() float64 {
-	if f.distance == 0 {
-		dist := 0.0
-		for k, city := range f.route {
-			from := city
-			to := cityT{}
-			if k+1 < len(f.route) {
-				to = f.route[k+1]
-			} else {
-				to = f.route[0]
-			}
-			dist += from.distance(to)
-		}
-		f.distance = dist
+	if f.distance != 0 {
+		return f.distance
 	}
+	dist := 0.0
+	for k, city := range f.route {
+		from := city
+		to := cityT{}
+		if k+1 < len(f.route) {
+			to = f.route[k+1]
+		} else {
+			to = f.route[0]
+		}
+		dist += from.distance(to)
+	}
+	f.distance = dist
 	return f.distance
 }
 
