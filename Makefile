@@ -7,6 +7,9 @@ lesson02:
 salesman:
 	go run ./cmd/salesman
 
+basket:
+	go run ./cmd/basket
+
 build_lesson01:
 	go build -o ./bin/lesson01 ./cmd/lessons/01
 
