@@ -61,3 +61,14 @@ bin/
 ├── bin2
 └── bin3
 ```
+
+## clivd
+
+Attempt to make poc cli tool. It accepts only one command `version`
+
+```bash
+make buildclivd
+./bin/clivd version
+Version              v0.0.1
+Commit               37739b5
+Date                 2021-09-30T20:38:24Z
