@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/vaclav-dvorak/go101/cmd/clivd/cmd"
+	"github.com/vaclav-dvorak/go101/src/clivd/cmd"
 )
 
 func main() {
