@@ -11,13 +11,13 @@ var (
 )
 
 func operate(in <-chan string, out chan<- int) {
+	defer close(buffout) //? this is only possible because we run one worker
 	for input := range in {
 		fmt.Printf("will put %d\n", len(input))
 		time.Sleep(time.Second)
 		out <- len(input)
 		fmt.Printf("putted %d\n", len(input))
 	}
-	close(buffout) //? this is only possible because we run one worker
 	fmt.Println("closed buffout")
 }
 
