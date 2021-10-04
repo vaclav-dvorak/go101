@@ -12,6 +12,7 @@ var (
 	}
 )
 
+// Execute function execute cobra command
 func Execute() error {
 	return rootCmd.Execute()
 }

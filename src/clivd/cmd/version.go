@@ -10,8 +10,6 @@ var (
 	version, commit, date = "dev", "dev", "now"
 )
 
-
-
 func versionCmd() *cobra.Command {
 	command := cobra.Command{
 		Use:   "version",

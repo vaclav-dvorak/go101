@@ -20,9 +20,9 @@ func shuffle(s string) string {
 
 func main() {
 	var (
-		T int
-		S string
-		output  []string
+		T      int
+		S      string
+		output []string
 	)
 
 	fmt.Scan(&T)
@@ -32,8 +32,8 @@ func main() {
 		output = append(output, shuffle(S))
 	}
 
-	for _,line := range output {
+	for _, line := range output {
 		fmt.Println(line)
 	}
-	
+
 }
