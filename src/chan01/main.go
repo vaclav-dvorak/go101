@@ -1,48 +1,63 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"sync"
 	"time"
+)
+
+const (
+	workers = 3
+
+	reset  = "\033[0m"
+	yellow = "\033[33m"
+	purple = "\033[35m"
+	cyan   = "\033[36m"
 )
 
 var (
 	done    = make(chan bool)
-	buffout = make(chan int)
+	buffout = make(chan int, workers)
+	buffin  = make(chan int, workers)
+	wg      sync.WaitGroup
 )
 
-func operate(in <-chan string, out chan<- int) {
-	defer close(buffout) //? this is only possible because we run one worker
-	for input := range in {
-		fmt.Printf("will put %d\n", len(input))
+func operate(inchan <-chan int, out chan<- int) {
+	defer wg.Done()
+	for input := range inchan {
+		log.Printf("%s[operate]%s - will put %d\n", yellow, reset, input)
 		time.Sleep(time.Second)
-		out <- len(input)
-		fmt.Printf("putted %d\n", len(input))
+		out <- input
+		log.Printf("%s[operate]%s - putted %d\n", yellow, reset, input)
 	}
-	fmt.Println("closed buffout")
 }
 
 func outputter(outputs <-chan int) {
 	for output := range outputs {
-		fmt.Println(output)
+		log.Printf("%s[outputter]%s - %d\n", purple, reset, output)
 	}
 	done <- true
-	fmt.Println("putted done")
+	log.Printf("%s[outputter]%s - putted done\n", purple, reset)
 }
 
 func main() {
-	buffin := make(chan string)
-
-	go operate(buffin, buffout)
+	wg.Add(workers)
+	for i := 0; i < workers; i++ {
+		go operate(buffin, buffout)
+	}
 	go outputter(buffout)
 
-	str := ""
-	for j := 0; j < 4; j++ {
-		str += "a"
-		fmt.Printf("will seed %d\n", len(str))
+	str := 0
+	for j := 0; j < (workers * 3); j++ {
+		str++
+		log.Printf("%s[main]%s - will seed %d\n", cyan, reset, str)
 		buffin <- str
-		fmt.Printf("seeded %d\n", len(str))
+		log.Printf("%s[main]%s - seeded %d\n", cyan, reset, str)
 	}
 	close(buffin)
-	fmt.Println("closed buffin")
+	log.Printf("%s[main]%s - closed buffin\n", cyan, reset)
+	wg.Wait()
+	close(buffout)
+	log.Printf("%s[main]%s - closed buffout\n", cyan, reset)
 	<-done
 }
