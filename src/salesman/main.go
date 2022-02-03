@@ -45,7 +45,7 @@ func contains(s []int, x int) bool {
 func selectMatingPool(population []routeT) []routeT {
 	var pick int
 	var picked, winners []int
-	var trnmtRounds int = int((len(population)) / 2)
+	var trnmtRounds = int((len(population)) / 2)
 	var matingSlice []routeT
 
 	for i := 0; i < elitism; i++ {
@@ -56,7 +56,7 @@ func selectMatingPool(population []routeT) []routeT {
 	for round := 0; round < trnmtRounds; round++ {
 		candidates := []routeT{}
 		for it := 0; it < trnmtSize; it++ {
-			for contains(picked, pick) == true || contains(winners, pick) == true {
+			for contains(picked, pick) || contains(winners, pick) {
 				pick = rand.Intn(len(population)-elitism) + elitism
 			}
 			picked = append(picked, pick)
@@ -111,7 +111,7 @@ func breed(parent1 routeT, parent2 routeT) routeT {
 
 func breedPopulation(matingpool []routeT) []routeT {
 	var children []routeT
-	var poolSize int = len(matingpool)
+	var poolSize = len(matingpool)
 	for i := 0; i < elitism; i++ {
 		children = append(children, matingpool[i])
 	}

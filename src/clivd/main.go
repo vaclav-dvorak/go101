@@ -1,9 +1,13 @@
 package main
 
 import (
+	"log"
+
 	"github.com/vaclav-dvorak/go101/src/clivd/cmd"
 )
 
 func main() {
-	cmd.Execute()
+	if err := cmd.Execute(); err != nil {
+		log.Print(err.Error())
+	}
 }

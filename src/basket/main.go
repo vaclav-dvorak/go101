@@ -40,7 +40,11 @@ func main() {
 	stdout, err := os.Create(os.Getenv("OUTPUT_PATH"))
 	checkError(err)
 
-	defer stdout.Close()
+	defer func() {
+		if terr := stdout.Close(); terr != nil {
+			fmt.Print(terr.Error())
+		}
+	}()
 
 	writer := bufio.NewWriterSize(stdout, 16*1024*1024)
 
@@ -71,7 +75,9 @@ func main() {
 
 	fmt.Fprintf(writer, "\n")
 
-	writer.Flush()
+	if err := writer.Flush(); err != nil {
+		fmt.Print(err.Error())
+	}
 }
 
 func readLine(reader *bufio.Reader) string {

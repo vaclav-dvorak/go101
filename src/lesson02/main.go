@@ -10,4 +10,5 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	fmt.Printf("%v , %v\n", rand.Intn(100), rand.Intn(100))
+	rnd()
 }
