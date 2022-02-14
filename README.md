@@ -72,3 +72,15 @@ make buildclivd
 Version              v0.0.1
 Commit               37739b5
 Date                 2021-09-30T20:38:24Z
+```
+
+## AOC
+
+Solutions to [Advent of Code 2021](https://adventofcode.com/2021) challenges. Can be found under `aoc` directories.
+
+```cmd
+src/
+├── aoc01
+├── ...
+└── aocxx
+```
