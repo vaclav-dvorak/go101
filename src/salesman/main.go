@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"os"
 	"sort"
 	"time"
 )
@@ -52,6 +51,11 @@ func selectMatingPool(population []routeT) []routeT {
 		matingSlice = append(matingSlice, population[i])
 	}
 
+	if elitism+trnmtRounds+trnmtSize-1 > len(population) {
+		fmt.Print("no room fo tournament prevent population extinction.\n")
+		return population
+	}
+
 	pick = rand.Intn(len(population)-elitism) + elitism // do inial pick as default 0 is not valid
 	for round := 0; round < trnmtRounds; round++ {
 		candidates := []routeT{}
@@ -78,8 +82,12 @@ func routeContains(s []cityT, x cityT) bool {
 	return false
 }
 
-func breed(parent1 routeT, parent2 routeT) routeT {
-	var child routeT
+func breed(parent1 routeT, parent2 routeT) (child routeT, err error) {
+	if parent1.toString() == parent2.toString() {
+		fmt.Printf("Duplicate routes eliminating %s\n", parent1.toString())
+		err = fmt.Errorf("duplicate")
+		return
+	}
 	geneA := float64(rand.Intn(len(parent1.route) - 2))
 	geneB := float64(rand.Intn(len(parent1.route) - 2))
 	startGene := int(math.Min(geneA, geneB) + 1)
@@ -94,19 +102,16 @@ func breed(parent1 routeT, parent2 routeT) routeT {
 		}
 		child.route = append(child.route, city)
 	}
-	clon := false
+
 	if child.toString() == parent1.toString() {
-		fmt.Println("Child is clon of P1: ", child.toString(), " ", parent1.toString())
-		clon = true
+		fmt.Printf("Child is clon of P1 will let P2 lives\n")
+		return parent2, nil
 	}
 	if child.toString() == parent2.toString() {
-		fmt.Println("Child is clon of P2: ", child.toString(), " ", parent2.toString())
-		clon = true
+		fmt.Printf("Child is clon of P2 will let P1 lives\n")
+		return parent1, nil
 	}
-	if clon {
-		os.Exit(1)
-	}
-	return child
+	return
 }
 
 func breedPopulation(matingpool []routeT) []routeT {
@@ -123,7 +128,10 @@ func breedPopulation(matingpool []routeT) []routeT {
 	}
 
 	for i := 0; i < poolSize; i++ {
-		children = append(children, breed(pool[i], pool[len(matingpool)-i-1]))
+		if newchild, err := breed(pool[i], pool[len(matingpool)-i-1]); err == nil {
+			children = append(children, newchild)
+		}
+
 	}
 	return children
 }
@@ -149,11 +157,13 @@ func main() {
 	// fmt.Println(population)
 
 	fmt.Println("Initial best distance: ", population[0].routeDistance())
-	for i := 0; i < generations; i++ {
+	for i := 0; i <= generations; i++ {
 		population = nextGeneration(population, elitism, mutation)
+		if i%100 == 0 {
+			fmt.Printf("Gen %d complete. Current population: %d\n", i, len(population))
+		}
 	}
 	for i := 0; i < 10; i++ {
-		fmt.Println("Final distance: ", population[i].routeDistance())
-		fmt.Println("Best route: ", population[i].toString())
+		fmt.Printf("Final distance: %.3f , Best route: %s\n", population[i].routeDistance(), population[i].toString())
 	}
 }

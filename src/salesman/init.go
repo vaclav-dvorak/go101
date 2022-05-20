@@ -15,7 +15,7 @@ func initCities() {
 			cities[i] = cityT{string(letters[i]), rand.Intn(mapSize), rand.Intn(mapSize)}
 		}
 	} else {
-		cities = []cityT{{"A", 11, 15}, {"B", 9, 7}, {"C", 1, 11}, {"D", 13, 18}, {"E", 3, 18}, {"F", 1, 11}, {"G", 19, 2}, {"H", 2, 13}, {"I", 2, 19}, {"J", 10, 8}}
+		cities = []cityT{{"A", 11, 15}, {"B", 9, 7}, {"C", 1, 11}, {"D", 13, 18}, {"E", 3, 18}, {"F", 5, 11}, {"G", 19, 2}, {"H", 2, 13}, {"I", 2, 19}, {"J", 10, 8}}
 	}
 }
 
