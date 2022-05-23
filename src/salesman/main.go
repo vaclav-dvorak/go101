@@ -155,7 +155,8 @@ func nextGeneration(currentGen []routeT, elitism int, mutation float32) []routeT
 	return nextGeneration
 }
 
-//? https://towardsdatascience.com/evolution-of-a-salesman-a-complete-genetic-algorithm-tutorial-for-python-6fe5d2b3ca35
+// https://towardsdatascience.com/evolution-of-a-salesman-a-complete-genetic-algorithm-tutorial-for-python-6fe5d2b3ca35
+//? https://gist.github.com/turbofart/3428880
 func main() {
 	if citiesNum > 62 {
 		fmt.Println("Number of cities cannot be bigger then 62")
