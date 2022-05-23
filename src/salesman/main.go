@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 	"sort"
 	"time"
@@ -12,9 +11,9 @@ const (
 	popSize     = 100
 	citiesNum   = 10
 	mapSize     = 20
-	elitism     = 10
-	trnmtSize   = 4 // popsize - elitism must be bigger than this
-	mutation    = 0.01
+	elitism     = 1
+	trnmtSize   = 5 // popsize - elitism must be bigger than this
+	mutation    = 0.015
 	generations = 500
 )
 
@@ -25,20 +24,6 @@ func rankRoutes(population []routeT) []routeT {
 		return population[i].routeDistance() < population[j].routeDistance()
 	})
 	return population
-}
-
-func bestRoutePop(population []routeT) routeT {
-	population = rankRoutes(population)
-	return population[0]
-}
-
-func contains(s []int, x int) bool {
-	for _, n := range s {
-		if x == n {
-			return true
-		}
-	}
-	return false
 }
 
 func killClones(pop []routeT) (ret []routeT) {
@@ -56,31 +41,28 @@ func killClones(pop []routeT) (ret []routeT) {
 }
 
 func selectMatingPool(population []routeT) []routeT {
-	var pick int
-	var picked []int
-	var trnmtRounds = int((len(population)) / 2)
-	var matingSlice []routeT
+	var (
+		trnmtRounds = int((len(population)) / 2)
+		matingSlice []routeT
+	)
 
-	if elitism+trnmtRounds+trnmtSize-1 > len(population) {
+	if elitism >= len(population) {
 		fmt.Print("no room for tournament. prevent population extinction.\n")
 		return population
 	}
 
 	matingSlice = population[:elitism]
 
-	pick = rand.Intn(len(population)-elitism) + elitism // do inial pick as default 0 is not valid
 	for round := 0; round < trnmtRounds; round++ {
-		candidates := []routeT{}
+		winner := routeT{distance: 1000000}
 		for it := 0; it < trnmtSize; it++ {
-			for contains(picked, pick) {
-				pick = rand.Intn(len(population)-elitism) + elitism
+			pick := rand.Intn(len(population)-elitism) + elitism
+			if winner.routeDistance() > population[pick].routeDistance() {
+				winner = population[pick]
 			}
-			picked = append(picked, pick)
-			candidates = append(candidates, population[pick])
 		}
 		// winners can appear multiple times in mating pool
-		picked = []int{}
-		matingSlice = append(matingSlice, bestRoutePop(candidates))
+		matingSlice = append(matingSlice, winner)
 	}
 	return matingSlice
 }
@@ -95,10 +77,11 @@ func routeContains(s []cityT, x cityT) bool {
 }
 
 func breed(parent1 routeT, parent2 routeT) (child routeT) {
-	geneA := float64(rand.Intn(len(parent1.route)-2) + 1)
-	geneB := float64(rand.Intn(len(parent1.route)-2) + 1)
-	startGene := int(math.Min(geneA, geneB) - 1)
-	endGene := int(math.Max(geneA, geneB) + 1)
+	startGene := rand.Intn(len(parent1.route))
+	endGene := rand.Intn(len(parent1.route))
+	if startGene > endGene {
+		startGene, endGene = endGene, startGene
+	}
 	sequence := parent1.route[startGene:endGene]
 	for k, city := range parent2.route {
 		if k == startGene {
@@ -113,30 +96,61 @@ func breed(parent1 routeT, parent2 routeT) (child routeT) {
 	return
 }
 
-func breedPopulation(matingpool []routeT) []routeT {
-	var children []routeT
-	var poolSize = len(matingpool)
-	idx := rand.Perm(len(matingpool))
-	pool := make([]routeT, len(matingpool))
+func breedPopulation(pop []routeT) (children []routeT) {
+	idx := rand.Perm(len(pop))
+	pool := make([]routeT, len(pop))
 	for i := range idx {
-		pool[i] = matingpool[idx[i]]
+		pool[i] = pop[idx[i]]
 	}
 
-	for i := 0; i < poolSize; i++ {
-		children = append(children, breed(pool[i], pool[len(matingpool)-i-1]))
+	for i := 0; i < len(pop); i++ {
+		children = append(children, breed(pool[i], pool[len(pop)-i-1]))
 	}
-	return children
+	return
+}
+
+func mutatePopulation(pop []routeT) (mutants []routeT) {
+	ret := make([]routeT, len(pop))
+	mut := 0
+	mutated := false
+	mutants = make([]routeT, 0)
+	copy(ret, pop)
+	for i := 0; i < len(ret); i++ {
+		mutated = false
+		for c := 0; c < len(ret[i].route); c++ {
+			if rand.Float64() < mutation {
+				mutated = true
+				swap := rand.Intn(len(ret[i].route))
+				ret[i].route[c], ret[i].route[swap] = ret[i].route[swap], ret[i].route[c]
+				mut++
+			}
+		}
+		if mutated {
+			mutants = append(mutants, ret[i])
+		}
+	}
+	if mut != 0 {
+		fmt.Printf("did %d mutations in this generation, le(mutants) = %d\n", mut, len(mutants))
+	}
+	return
 }
 
 func nextGeneration(currentGen []routeT, elitism int, mutation float32) []routeT {
 	popRanked := rankRoutes(currentGen)
-	matingPool := selectMatingPool(popRanked) // select mating candidates from current population
-	children := breedPopulation(matingPool)   // breed new childrens
-	// nextGeneration = mutatePopulation(children, mutationRate) // mutate childrens
-	// return nextGeneration
-	nextGeneration := rankRoutes(killClones(append(matingPool, children...)))
-	if len(nextGeneration) > popSize {
-		nextGeneration = nextGeneration[:popSize]
+	matingPool := selectMatingPool(popRanked)                  // select mating candidates from current population
+	children := breedPopulation(matingPool)                    // breed new childrens
+	children = append(children, mutatePopulation(children)...) // mutate childrens
+
+	// this whole thing should be different
+	// -take one elite route at beginning
+	// - from 0 to popsize lets play tournament to get two winning parents
+	// - breed child out of them
+	// - add mutants if needed
+	// - sort it by distance and let next generation play tournament with whole before generation
+
+	nextGeneration := killClones(append(matingPool, children...))
+	if len(nextGeneration) > 2*popSize {
+		nextGeneration = nextGeneration[:2*popSize]
 	}
 	return nextGeneration
 }
@@ -159,7 +173,7 @@ func main() {
 			fmt.Printf("Gen %d complete. Current population: %d\n", i, len(population))
 		}
 	}
-	for i := 0; i < 10; i++ {
+	for i := 0; i < citiesNum; i++ {
 		fmt.Printf("Final distance: %.3f , Best route: %s\n", population[i].routeDistance(), population[i].toString())
 	}
 }
