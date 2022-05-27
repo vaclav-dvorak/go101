@@ -4,9 +4,7 @@ import (
 	"math/rand"
 )
 
-const names = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456798"
-
-var letters = []rune(names)
+var letters = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456798")
 
 func initCities() {
 	rnd := false
@@ -19,8 +17,8 @@ func initCities() {
 	}
 }
 
-func initialPopulation() []routeT {
-	population := make([]routeT, popSize)
+func initialPopulation() (population []routeT) {
+	population = make([]routeT, popSize)
 	for popi := range population {
 		idx := rand.Perm(citiesNum)
 		sample := make([]cityT, citiesNum)
@@ -29,5 +27,5 @@ func initialPopulation() []routeT {
 		}
 		population[popi] = routeT{route: sample}
 	}
-	return population
+	return
 }

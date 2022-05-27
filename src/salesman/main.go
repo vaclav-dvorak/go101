@@ -11,8 +11,8 @@ const (
 	popSize     = 100
 	citiesNum   = 10
 	mapSize     = 20
-	elitism     = 1
-	trnmtSize   = 5 // popsize - elitism must be bigger than this
+	elitism     = 2
+	trnmtRounds = 5 // popsize - elitism must be bigger than this
 	mutation    = 0.015
 	generations = 500
 )
@@ -36,40 +36,13 @@ func killClones(pop []routeT) (ret []routeT) {
 			ret = append(ret, pop[i])
 		}
 	}
-	fmt.Printf("clones killed = %d, survived = %d\n", len(pop)-len(ret), len(ret))
+	fmt.Printf("clones killed = %02d, survived = %02d\n", len(pop)-len(ret), len(ret))
 	return
 }
 
-func selectMatingPool(population []routeT) []routeT {
-	var (
-		trnmtRounds = int((len(population)) / 2)
-		matingSlice []routeT
-	)
-
-	if elitism >= len(population) {
-		fmt.Print("no room for tournament. prevent population extinction.\n")
-		return population
-	}
-
-	matingSlice = population[:elitism]
-
-	for round := 0; round < trnmtRounds; round++ {
-		winner := routeT{distance: 1000000}
-		for it := 0; it < trnmtSize; it++ {
-			pick := rand.Intn(len(population)-elitism) + elitism
-			if winner.routeDistance() > population[pick].routeDistance() {
-				winner = population[pick]
-			}
-		}
-		// winners can appear multiple times in mating pool
-		matingSlice = append(matingSlice, winner)
-	}
-	return matingSlice
-}
-
 func routeContains(s []cityT, x cityT) bool {
-	for _, n := range s {
-		if x.name == n.name {
+	for i := 0; i < len(s); i++ {
+		if x.name == s[i].name {
 			return true
 		}
 	}
@@ -96,24 +69,10 @@ func breed(parent1 routeT, parent2 routeT) (child routeT) {
 	return
 }
 
-func breedPopulation(pop []routeT) (children []routeT) {
-	idx := rand.Perm(len(pop))
-	pool := make([]routeT, len(pop))
-	for i := range idx {
-		pool[i] = pop[idx[i]]
-	}
-
-	for i := 0; i < len(pop); i++ {
-		children = append(children, breed(pool[i], pool[len(pop)-i-1]))
-	}
-	return
-}
-
-func mutatePopulation(pop []routeT) (mutants []routeT) {
-	ret := make([]routeT, len(pop))
-	mut := 0
+func mutatePopulation(pop []routeT) (ret []routeT) {
+	ret = make([]routeT, len(pop))
+	mut, mutants := 0, 0
 	mutated := false
-	mutants = make([]routeT, 0)
 	copy(ret, pop)
 	for i := 0; i < len(ret); i++ {
 		mutated = false
@@ -126,37 +85,40 @@ func mutatePopulation(pop []routeT) (mutants []routeT) {
 			}
 		}
 		if mutated {
-			mutants = append(mutants, ret[i])
+			mutants++
 		}
 	}
-	if mut != 0 {
-		fmt.Printf("did %d mutations in this generation, le(mutants) = %d\n", mut, len(mutants))
+	fmt.Printf("mutations = %02d,  mutants = %02d, ", mut, mutants)
+	return
+}
+
+func tournament(pop []routeT) (winner routeT) {
+	winner = routeT{distance: 1000000}
+	for it := 0; it < trnmtRounds; it++ {
+		pick := rand.Intn(len(pop))
+		if winner.routeDistance() > pop[pick].routeDistance() {
+			winner = pop[pick]
+		}
 	}
 	return
 }
 
-func nextGeneration(currentGen []routeT, elitism int, mutation float32) []routeT {
+func nextGeneration(currentGen []routeT) []routeT {
 	popRanked := rankRoutes(currentGen)
-	matingPool := selectMatingPool(popRanked)                  // select mating candidates from current population
-	children := breedPopulation(matingPool)                    // breed new childrens
-	children = append(children, mutatePopulation(children)...) // mutate childrens
-
-	// this whole thing should be different
-	// -take one elite route at beginning
-	// - from 0 to popsize lets play tournament to get two winning parents
-	// - breed child out of them
-	// - add mutants if needed
-	// - sort it by distance and let next generation play tournament with whole before generation
-
-	nextGeneration := killClones(append(matingPool, children...))
-	if len(nextGeneration) > 2*popSize {
-		nextGeneration = nextGeneration[:2*popSize]
+	children := make([]routeT, popSize-elitism)
+	for i := elitism; i < popSize; i++ {
+		parent1 := tournament(popRanked)
+		parent2 := tournament(popRanked)
+		children[i-elitism] = breed(parent1, parent2)
 	}
+	children = mutatePopulation(children)
+	newPop := popRanked[:elitism]
+	newPop = append(newPop, children...)
+	nextGeneration := killClones(newPop)
 	return nextGeneration
 }
 
-// https://towardsdatascience.com/evolution-of-a-salesman-a-complete-genetic-algorithm-tutorial-for-python-6fe5d2b3ca35
-//? https://gist.github.com/turbofart/3428880
+// https://gist.github.com/turbofart/3428880
 func main() {
 	if citiesNum > 62 {
 		fmt.Println("Number of cities cannot be bigger then 62")
@@ -165,15 +127,13 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	initCities()
 	population := rankRoutes(initialPopulation())
-	// fmt.Println(population)
 
 	fmt.Println("Initial best distance: ", population[0].routeDistance())
 	for i := 0; i <= generations; i++ {
-		population = nextGeneration(population, elitism, mutation)
-		if i%50 == 0 {
-			fmt.Printf("Gen %d complete. Current population: %d\n", i, len(population))
-		}
+		fmt.Printf("%03d: ", i)
+		population = nextGeneration(population)
 	}
+	population = rankRoutes(population)
 	for i := 0; i < citiesNum; i++ {
 		fmt.Printf("Final distance: %.3f , Best route: %s\n", population[i].routeDistance(), population[i].toString())
 	}

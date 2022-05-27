@@ -9,7 +9,7 @@ type cityT struct {
 	x, y int
 }
 
-func (c *cityT) distance(t cityT) float64 {
+func (c cityT) distance(t cityT) float64 {
 	xDis := (c.x - t.x)
 	yDis := (c.y - t.y)
 	return math.Sqrt(float64((xDis * xDis) + (yDis * yDis)))
@@ -37,7 +37,7 @@ func (f *routeT) routeDistance() float64 {
 	return f.distance
 }
 
-func (f *routeT) toString() string {
+func (f routeT) toString() string {
 	r := ""
 	for _, city := range f.route {
 		r += city.name
