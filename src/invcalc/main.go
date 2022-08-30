@@ -1,6 +1,14 @@
 package main
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,4 +39,19 @@ func main() {
 			log.Infof("%02d: dokup %d; bal %d", d, dokup, balance)
 		}
 	}
+	calcSig()
+}
+
+func calcSig() {
+	clientId := "6"
+	publicKey := "CpmRVUJL0OGByT2otAfCKeeDdU6yfi6OzvnXcAwaHvE"
+	nonce := strconv.FormatInt(time.Now().Unix(), 10)
+	secret := "secret"
+	data := fmt.Sprintf("%s%s%s", nonce, clientId, publicKey)
+	fmt.Printf("Secret: %s Data: %s\n", secret, data)
+
+	h := hmac.New(sha256.New, []byte(secret))
+	h.Write([]byte(data))
+	signature := strings.ToUpper(hex.EncodeToString(h.Sum(nil)))
+	fmt.Println("Result: " + signature)
 }
