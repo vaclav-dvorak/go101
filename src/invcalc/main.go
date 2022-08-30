@@ -21,7 +21,7 @@ func main() {
 	for d := 1; d <= 365; d++ {
 		if _, ok := nacon[d%7]; ok {
 			balance -= nakup
-			if balance<0 {
+			if balance < 0 {
 				log.Fatal("bust below zero")
 			}
 			log.Infof("%02d: nakupuju %d; bal %d", d, nakup, balance)
