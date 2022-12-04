@@ -7,39 +7,39 @@ func main() {
 	for i := 0; i < len(input); i++ {
 		switch input[i][2] {
 		case 'X':
-			my = 1
+			match = 0
 		case 'Y':
-			my = 2
+			match = 3
 		case 'Z':
-			my = 3
+			match = 6
 		}
 		switch input[i][0] {
 		case 'A':
-			switch my {
-			case 1:
-				match = 3
-			case 2:
-				match = 6
+			switch match {
+			case 0:
+				my = 3
 			case 3:
-				match = 0
+				my = 1
+			case 6:
+				my = 2
 			}
 		case 'B':
-			switch my {
-			case 1:
-				match = 0
-			case 2:
-				match = 3
+			switch match {
+			case 0:
+				my = 1
 			case 3:
-				match = 6
+				my = 2
+			case 6:
+				my = 3
 			}
 		case 'C':
-			switch my {
-			case 1:
-				match = 6
-			case 2:
-				match = 0
+			switch match {
+			case 0:
+				my = 2
 			case 3:
-				match = 3
+				my = 3
+			case 6:
+				my = 1
 			}
 		}
 		score += my + match
